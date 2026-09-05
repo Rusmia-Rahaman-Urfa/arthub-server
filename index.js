@@ -79,6 +79,19 @@ async function run() {
     const userCollection = ArtHubDB.collection('user');
     const commentCollection = ArtHubDB.collection('comment');
 
+    // get artist data by artist id for artwork profile data
+    app.get('/api/artist/profile',  async (req, res) => {
+      const { artistId } = req.query;
+      const artistData = await userCollection.findOne({ _id: new ObjectId(artistId) })
+      res.json(artistData)
+    });
+    // get artist data by artist id for artwork profile data
+    app.get('/api/artist/profile/artwork', async (req, res) => {
+      const { artistId } = req.query;
+      const artistData = await artWorksCollection.find({ artistId: artistId }).toArray()
+      res.json(artistData)
+      });
+
     //get artwork for feature section 
     app.get('/api/artwork/features', async (req, res) => {
       const result = await artWorksCollection.find().toArray()
