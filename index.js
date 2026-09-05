@@ -90,7 +90,18 @@ async function run() {
       const { artistId } = req.query;
       const artistData = await artWorksCollection.find({ artistId: artistId }).toArray()
       res.json(artistData)
-      });
+    });
+    // get artist payments history by artist id
+    app.get('/api/artist/sales', verifyToken, verifyArtist, async (req, res) => {
+      const { artistId, page = 1, limit = 11 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+      const result = await paymentsCollection.find({ artistId: artistId, type: 'payment' }).skip(skip).limit(Number(limit)).toArray();
+      const totalData = await paymentsCollection.countDocuments({ artistId: artistId, type: 'payment' });
+      // all result for overview page data 
+      const resultAll = await paymentsCollection.find({ artistId: artistId, type: 'payment' }).sort({ createAt: -1 }).toArray();
+      const totalPage = Math.ceil(totalData / Number(limit));
+      res.json({ data: result, page: Number(page), totalPage, resultAll: resultAll });
+    });
 
     //get artwork for feature section 
     app.get('/api/artwork/features', async (req, res) => {
