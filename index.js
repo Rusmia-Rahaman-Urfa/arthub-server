@@ -125,6 +125,20 @@ async function run() {
       res.json({ data: result, page: Number(page), totalPage, totalData, allArtwork: allArtwork });
     });
 
+    // delete artwork
+    app.delete('/api/artwork/:id', verifyToken, verifyArtist, async (req, res) => {
+      const { id } = req.params;
+      const result = await artWorksCollection.deleteOne({ _id: new ObjectId(id) });
+      res.json(result);
+    });
+    // update artwork by artist
+    app.patch('/api/artwork/:id', verifyToken, verifyArtist, async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      const result = await artWorksCollection.updateOne({ _id: new ObjectId(id) }, { $set: data });
+      res.json(result);
+    });
+
     //get artwork for feature section 
     app.get('/api/artwork/features', async (req, res) => {
       const result = await artWorksCollection.find().toArray()
