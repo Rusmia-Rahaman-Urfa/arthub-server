@@ -442,6 +442,17 @@ async function run() {
       ]).toArray();
       res.json(result);
     })
+    // admin get all sold artworks
+    app.get('/api/admin/sold', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await purchasesCollection.find().toArray();
+      res.json(result);
+    })
+    // get total payments data
+    app.get('/api/admin/payments', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await paymentsCollection.find().toArray();
+      const totalRevenue = result.reduce((total, sale) => total + Number(sale.amount), 0);
+      res.json(totalRevenue);
+    })
 
   
 }finally {
