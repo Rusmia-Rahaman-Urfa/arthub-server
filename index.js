@@ -33,6 +33,32 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+// artist verification
+const verifyArtist = async (req, res, next) => {
+  const user = req.user;
+  if (user?.role !== 'artist') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+
+// admin verification
+const verifyAdmin = async (req, res, next) => {
+  const user = req.user;
+  if (user?.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+
+// buyer verification
+const verifyBuyer = async (req, res, next) => {
+  const user = req.user;
+  if (user?.role !== 'buyer') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
 
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri, {
