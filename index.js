@@ -196,6 +196,65 @@ async function run() {
       const result = await purchasesCollection.find({ buyerId: userId }).toArray();
       res.json(result);
     });
+    // payment related all APIs
+    app.post('/api/payments', verifyToken, verifyBuyer, async (req, res) => {
+      const data = req.body;
+      const { sessionId, customerEmail, type, amount, artistName, artworkName, artworkId, image, artistId, buyerId, buyerName } = data;
+
+      const existingPayment = await paymentsCollection.findOne({ sessionId });
+      if (existingPayment) {
+        return
+      }
+      // purchases
+      const purchaseObj = {
+        image,
+        artworkName,
+        artworkId,
+        buyerId,
+        customerEmail,
+      }
+      await purchasesCollection.insertOne(purchaseObj);
+
+      // history 
+      const newPayment = {
+        artistId,
+        artistName,
+        artworkName,
+        buyerId,
+        buyerName,
+        amount,
+        sessionId,
+        type,
+        customerEmail,
+        createAt: new Date(),
+      }
+      await paymentsCollection.insertOne(newPayment);
+    });
+
+    // subscriptions
+    app.post('/api/subscriptions', verifyToken, verifyBuyer, async (req, res) => {
+      const data = req.body;
+      const userId = data.buyerId;
+      const sessionId = data.sessionId;
+      const existingPayment = await paymentsCollection.findOne({ sessionId });
+      if (existingPayment) {
+        return
+      }
+
+      const filter = ({ _id: new ObjectId(userId) });
+      const updateDocument = {
+        $set: {
+          plan: data.priceId,
+        }
+      }
+      await userCollection.updateOne(filter, updateDocument);
+
+      const newSubscription = {
+        ...data,
+        createAt: new Date(),
+      }
+      await paymentsCollection.insertOne(newSubscription);
+    });
   
 }finally {
   await client.close();
