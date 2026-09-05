@@ -314,6 +314,13 @@ async function run() {
       const result = await commentCollection.find({ artworkId: artworkId }).sort({ createAt: -1 }).toArray();
       res.json(result);
     });
+    // user artwork purchase or not check
+    app.get('/api/user/purchaseProved', verifyToken, async (req, res) => {
+      const { userId, artworkId } = req.query;
+      const purchaseExist = await purchasesCollection.findOne({ artworkId, buyerId: userId })
+
+      res.json(purchaseExist)
+    });
   
 }finally {
   await client.close();
