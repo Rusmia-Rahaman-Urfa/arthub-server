@@ -423,6 +423,25 @@ async function run() {
       const result = await artWorksCollection.deleteOne({ _id: new ObjectId(id) });
       res.json(result);
     });
+    // get admin pie chart data
+    app.get('/api/admin/pie', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await artWorksCollection.aggregate([
+        {
+          $group: {
+            _id: "$category",
+            value: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            name: "$_id",
+            value: 1
+          }
+        }
+      ]).toArray();
+      res.json(result);
+    })
 
   
 }finally {
