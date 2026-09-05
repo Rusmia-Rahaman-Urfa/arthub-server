@@ -404,6 +404,25 @@ async function run() {
       const totalPage = Math.ceil(totalData / Number(limit));
       res.json({ data: result, page: Number(page), totalPage });
     });
+  
+    // admin get all artwork 
+    app.get('/api/admin/artworks', verifyToken, verifyAdmin, async (req, res) => {
+      const { role, page = 1, limit = 11 } = req.query;
+      if (role !== 'admin') {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      const skip = (Number(page) - 1) * Number(limit);
+      const result = await artWorksCollection.find().sort({ createAt: -1 }).skip(skip).limit(Number(limit)).toArray();
+      const totalData = await artWorksCollection.countDocuments();
+      const totalPage = Math.ceil(totalData / Number(limit));
+      res.json({ data: result, page: Number(page), totalPage });
+    });
+    // admin delete artwork
+    app.delete('/api/admin/artwork/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const { id } = req.params;
+      const result = await artWorksCollection.deleteOne({ _id: new ObjectId(id) });
+      res.json(result);
+    });
 
   
 }finally {
