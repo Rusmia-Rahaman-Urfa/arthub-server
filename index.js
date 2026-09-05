@@ -143,7 +143,7 @@ async function run() {
     app.get('/api/artwork/features', async (req, res) => {
       const result = await artWorksCollection.find().toArray()
       res.json(result)
-    })
+    });
     // get artworks
     app.get('/api/artwork', async (req, res) => {
       const { search, minPrice, maxPrice, category, sort, page = 1, limit = 12 } = req.query;
@@ -174,12 +174,28 @@ async function run() {
         const totalPage = Math.ceil(totalData / Number(limit));
         res.json({ data: result, page: Number(page), totalPage });
       });
-      //get artwork by id
-      app.get('/api/artwork/:id', async (req, res) => {
-        const { id } = req.params;
-        const result = await artWorksCollection.findOne({ _id: new ObjectId(id) });
-        res.json(result);
-        });
+    //get artwork by id
+    app.get('/api/artwork/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await artWorksCollection.findOne({ _id: new ObjectId(id) });
+      res.json(result);
+    });
+
+    //get buy artwork by user id
+    app.get('/api/purchases', verifyToken, verifyBuyer, async (req, res) => {
+      const { userId, page = 1, limit = 6 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+      const result = await purchasesCollection.find({ buyerId: userId }).skip(skip).limit(Number(limit)).toArray();
+      const totalData = await purchasesCollection.countDocuments({ buyerId: userId });
+      const totalPage = Math.ceil(totalData / Number(limit));
+      res.json({ data: result, page: Number(page), totalPage });
+    });
+    // get my total purchase for overview page 
+    app.get('/api/purchases/total', verifyToken, verifyBuyer, async (req, res) => {
+      const { userId } = req.query;
+      const result = await purchasesCollection.find({ buyerId: userId }).toArray();
+      res.json(result);
+    });
   
 }finally {
   await client.close();
