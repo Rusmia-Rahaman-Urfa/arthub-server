@@ -357,6 +357,42 @@ async function run() {
         });
       }
     });
+    // admin get all users
+    app.get('/api/admin/users', verifyToken, verifyAdmin, async (req, res) => {
+      const { role, page = 1, limit = 10 } = req.query;
+
+      if (role !== 'admin') {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const skip = (Number(page) - 1) * Number(limit);
+      const result = await userCollection.find().skip(skip).limit(Number(limit)).toArray();
+      const totalData = await userCollection.countDocuments();
+      const totalPage = Math.ceil(totalData / Number(limit));
+      res.json({ data: result, page: Number(page), totalPage });
+    });
+    //admin updater user role using user id
+    app.patch('/api/admin/users/:id', verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const roleData = req.body;
+        const filter = { _id: new ObjectId(id) };
+        const updateDocument = {
+          $set: {
+            role: roleData.role,
+          }
+        }
+        const result = await userCollection.updateOne(filter, updateDocument)
+        res.json({ result, success: true, message: 'User updated successfully' })
+      }catch(error){
+        res.status(500).json({
+          success: false,
+          message: 'Something went wrong please try again',
+          error,
+        });
+      }
+  });
+
   
 }finally {
   await client.close();
