@@ -255,6 +255,65 @@ async function run() {
       }
       await paymentsCollection.insertOne(newSubscription);
     });
+    // get payments history by buyer id
+    app.get('/api/payments', verifyToken, verifyBuyer, async (req, res) => {
+      const { userId, page = 1, limit = 10 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const result = await paymentsCollection.find({ buyerId: userId, type: 'payment' }).sort({ createAt: -1 }).skip(skip).limit(Number(limit)).toArray();
+
+      const totalData = await paymentsCollection.countDocuments({ buyerId: userId, type: 'payment' })
+      const totalPage = Math.ceil(totalData / Number(limit));
+
+      res.json({ data: result, page: Number(page), totalPage });
+    });
+
+
+    // comments API
+    app.post("/api/user/comment", verifyToken, async (req, res) => {
+
+      try {
+        const data = req.body;
+        const { artWorkId } = req.query;
+        const { userId, artworkId, comment, userName } = data;
+        const buyExist = await purchasesCollection.findOne({ artworkId: artWorkId, buyerId: req.user.id });
+
+        if (!buyExist) {
+          return res.status(400).json({
+            success: false,
+            message: 'Artwork not found',
+          });
+        }
+
+        const commentObj = {
+          userId,
+          artworkId,
+          comment,
+          userName,
+          createAt: new Date(),
+        }
+        const result = await commentCollection.insertOne(commentObj);
+        res.status(200).json({
+          result,
+          success: true,
+          message: 'Comment added successfully',
+        });
+
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: 'Internal server error',
+          error,
+        });
+      }
+    });
+
+    // get comments 
+    app.get('/api/user/comment', verifyToken, async (req, res) => {
+      const { artworkId } = req.query;
+      const result = await commentCollection.find({ artworkId: artworkId }).sort({ createAt: -1 }).toArray();
+      res.json(result);
+    });
   
 }finally {
   await client.close();
