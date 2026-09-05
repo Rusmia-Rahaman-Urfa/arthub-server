@@ -72,7 +72,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const ArtHubDB = client.db('ArtHub');
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    const artWorksCollection = ArtHubDB.collection('artworks');
+    const paymentsCollection = ArtHubDB.collection('payments');
+    const plansCollection = ArtHubDB.collection('plans');
+    const purchasesCollection = ArtHubDB.collection('purchases');
+    const userCollection = ArtHubDB.collection('user');
+    const commentCollection = ArtHubDB.collection('comment');
   } finally {
     // Client connection open
   }
