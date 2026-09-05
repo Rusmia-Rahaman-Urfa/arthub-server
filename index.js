@@ -454,10 +454,18 @@ async function run() {
       res.json(totalRevenue);
     })
 
-  
-}finally {
+    // plans api
+    app.get('/api/plans', async (req, res) => {
+      const plan = req.query.plan;
+      const result = await plansCollection.findOne({ plan_id: plan });
+      res.json(result);
+    });
+
+    console.log("You successfully connected to MongoDB!");
+
+  } finally {
   await client.close();
-}
+ }
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
