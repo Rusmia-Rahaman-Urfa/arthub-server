@@ -392,6 +392,18 @@ async function run() {
         });
       }
   });
+    // admin get all users transactions
+    app.get('/api/admin/transactions', verifyToken, verifyAdmin, async (req, res) => {
+      const { role, page = 1, limit = 11 } = req.query;
+      if (role !== 'admin') {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      const skip = (Number(page) - 1) * Number(limit);
+      const result = await paymentsCollection.find().sort({ createAt: -1 }).skip(skip).limit(Number(limit)).toArray();
+      const totalData = await paymentsCollection.countDocuments();
+      const totalPage = Math.ceil(totalData / Number(limit));
+      res.json({ data: result, page: Number(page), totalPage });
+    });
 
   
 }finally {
